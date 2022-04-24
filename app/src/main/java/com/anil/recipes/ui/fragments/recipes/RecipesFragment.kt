@@ -9,17 +9,13 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.anil.recipes.R
 import com.anil.recipes.viewModels.MainViewModel
 import com.anil.recipes.adapter.RecipesAdapter
 import com.anil.recipes.databinding.FragmentRecipesBinding
-import com.anil.recipes.util.Constants.Companion.API_KEY
-import com.anil.recipes.util.Constants.Companion.QUERY_ADD_RECIPE_INFORMATION
-import com.anil.recipes.util.Constants.Companion.QUERY_API_KEY
-import com.anil.recipes.util.Constants.Companion.QUERY_DIET
-import com.anil.recipes.util.Constants.Companion.QUERY_FILL_INGREDIENTS
-import com.anil.recipes.util.Constants.Companion.QUERY_NUMBER
-import com.anil.recipes.util.Constants.Companion.QUERY_TYPE
 import com.anil.recipes.util.NetworkResult
 import com.anil.recipes.util.observeOnce
 import com.anil.recipes.viewModels.RecipesViewModel
@@ -28,6 +24,7 @@ import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class RecipesFragment : Fragment() {
+    private val args by navArgs<RecipesFragmentArgs>()
 
     private var binding: FragmentRecipesBinding? = null
     private lateinit var mainViewModel: MainViewModel
@@ -50,6 +47,10 @@ class RecipesFragment : Fragment() {
         setupRecyclerView()
         readDatabase()
 
+        binding?.recipesFab?.setOnClickListener {
+                findNavController().navigate(R.id.action_recipesFragment_to_recipesBottomSheet)
+        }
+
         return binding?.root
 
     }
@@ -63,7 +64,7 @@ class RecipesFragment : Fragment() {
     private fun readDatabase() {
         lifecycleScope.launch {
             mainViewModel.readRecipes.observeOnce(viewLifecycleOwner) { database ->
-                if (database.isNotEmpty()) {
+                if (database.isNotEmpty() && !args.backFromBottomSheet) {
                     Log.d("RecipesFragment", "readDatabase called!")
                     mAdapter.setData(database.first().foodRecipe)
                     hideShimmerEffect()
@@ -77,7 +78,7 @@ class RecipesFragment : Fragment() {
 
     private fun requestApiData() {
         Log.d("RecipesFragment", "requestApiData called!")
-        mainViewModel.getRecipes(recipeViewModel.applyQuery())
+        mainViewModel.getRecipes(recipeViewModel.applyQueries())
         mainViewModel.recipesResponse.observe(viewLifecycleOwner) { response ->
             when (response) {
                 is NetworkResult.Success -> {
@@ -108,12 +109,20 @@ class RecipesFragment : Fragment() {
 
     private fun showShimmerEffect() {
         binding?.shimmerFrameLayout?.startShimmer()
+        binding?.shimmerFrameLayout?.visibility = View.VISIBLE
+        binding?.recyclerview?.visibility = View.GONE
     }
 
     private fun hideShimmerEffect() {
         binding?.shimmerFrameLayout?.stopShimmer()
         binding?.shimmerFrameLayout?.visibility = View.GONE
+        binding?.recyclerview?.visibility = View.VISIBLE
     }
 
+
+    override fun onDestroy() {
+        super.onDestroy()
+        binding = null
+    }
 
 }
