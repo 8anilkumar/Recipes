@@ -11,4 +11,9 @@ class RemoteDataScrouce @Inject constructor(private val foodRecipesApi: FoodReci
         return foodRecipesApi.getRecipes(queries)
     }
 
+    suspend fun searchRecipes(searchQuery: Map<String, String>): Response<FoodRecipe> {
+        return foodRecipesApi.searchRecipes(searchQuery)
+    }
+
+
 }

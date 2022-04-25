@@ -1,4 +1,4 @@
-package com.anil.recipes.data.database
+package com.anil.recipes.data.database.entities
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
