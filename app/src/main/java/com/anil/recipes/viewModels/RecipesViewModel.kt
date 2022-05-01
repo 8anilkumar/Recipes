@@ -28,26 +28,25 @@ import javax.inject.Inject
 @HiltViewModel
 class RecipesViewModel @Inject constructor(application: Application, private val dataStoreRepository: DataStoreRepository) : AndroidViewModel(application) {
 
-
-    private var mealType = DEFAULT_MEAL_TYPE
-    private var dietType = DEFAULT_DIET_TYPE
-
+    private lateinit var mealAndDiet: MealAndDietType
     var networkStatus = false
     var backOnline = false
-
 
     val readMealAndDietType = dataStoreRepository.readMealAndDietType
     val readBackOnline = dataStoreRepository.readBackOnline.asLiveData()
 
-
-    fun saveMealAndDietType(mealTypeChip: String, mealTypeChipId: Int, dietTypeChip: String, dietTypeChipId: Int) =
+    fun saveMealAndDietType() =
         viewModelScope.launch(Dispatchers.IO) {
             dataStoreRepository.saveMealAndDietType(
-                mealTypeChip,
-                mealTypeChipId,
-                dietTypeChip,
-                dietTypeChipId
+                mealAndDiet.selectedMealType,
+                mealAndDiet.selectedMealTypeId,
+                mealAndDiet.selectedDietType,
+                mealAndDiet.selectedDietTypeId
             )
+    }
+
+    fun saveMealAndDietTypeTemp(mealType: String, mealTypeId: Int, dietType: String, dietTypeId: Int) {
+        mealAndDiet = MealAndDietType(mealType,mealTypeId,dietType,dietTypeId)
     }
 
     private fun saveBackOnline(backOnline: Boolean) =
@@ -56,20 +55,13 @@ class RecipesViewModel @Inject constructor(application: Application, private val
         }
 
     fun applyQueries(): HashMap<String, String> {
-        viewModelScope.launch {
-            readMealAndDietType.collect() { value ->
-                mealType = value.selectedMealType
-                dietType = value.selectedDietType
-            }
-        }
-
         val queries: HashMap<String, String> = HashMap()
         queries[QUERY_NUMBER] = DEFAULT_RECIPES_NUMBER
         queries[QUERY_API_KEY] = API_KEY
         queries[QUERY_ADD_RECIPE_INFORMATION] = "true"
         queries[QUERY_FILL_INGREDIENTS] = "true"
-        queries[QUERY_TYPE] = mealType
-        queries[QUERY_DIET] = dietType
+        queries[QUERY_TYPE] = mealAndDiet.selectedMealType
+        queries[QUERY_DIET] = mealAndDiet.selectedDietType
 
         return queries
     }

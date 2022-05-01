@@ -28,14 +28,10 @@ class DetailsActivity : AppCompatActivity() {
 
     private val args by navArgs<DetailsActivityArgs>()
     private lateinit var binding: ActivityDetailsBinding
-
     private var recipeSaved = false
     private var savedRecipeId = 0
-
     private val mainViewModel: MainViewModel by viewModels()
-
     private lateinit var menuItem: MenuItem
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
